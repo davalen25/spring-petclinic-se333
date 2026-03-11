@@ -49,6 +49,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import jakarta.servlet.ServletException;
+
 /**
  * Test class for {@link OwnerController}
  *
@@ -246,6 +250,23 @@ class OwnerControllerTests {
 			.andExpect(status().is3xxRedirection())
 			.andExpect(redirectedUrl("/owners/" + pathOwnerId + "/edit"))
 			.andExpect(flash().attributeExists("error"));
+	}
+
+	@Test
+	void initUpdateOwnerFormWhenOwnerNotFound() {
+		given(this.owners.findById(999)).willReturn(Optional.empty());
+
+		assertThatThrownBy(() -> mockMvc.perform(get("/owners/{ownerId}/edit", 999)))
+			.isInstanceOf(ServletException.class)
+			.hasCauseInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
+	void showOwnerWhenOwnerNotFound() {
+		given(this.owners.findById(999)).willReturn(Optional.empty());
+
+		assertThatThrownBy(() -> mockMvc.perform(get("/owners/{ownerId}", 999))).isInstanceOf(ServletException.class)
+			.hasCauseInstanceOf(IllegalArgumentException.class);
 	}
 
 }
